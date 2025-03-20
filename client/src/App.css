@@ -1,3 +1,207 @@
+/* Signup Page Enhancements (shared with Login) */
+main {
+  background-color: #d9e9e8; /* bg-light for subtle background */
+}
+
+.card.card-rounded {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  border: none; /* Remove default border */
+}
+
+.card-header {
+  font-size: 1.5rem; /* Match h4 */
+}
+
+.form-label {
+  font-size: 1.1rem; /* Slightly smaller than default */
+  color: #1a1a1a; /* text-dark */
+}
+
+.form-input {
+  padding: 0.9rem;
+  font-size: 1.1rem;
+  border-radius: 0.4rem;
+  border-color: #aeaeae;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.form-input:focus {
+  border-color: #2d3e50; /* bg-primary */
+  outline: none;
+  box-shadow: 0 0 5px rgba(45, 62, 80, 0.3); /* Focus glow */
+}
+
+.btn.btn-primary {
+  padding: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.btn.btn-primary:hover {
+  background-color: #57779a; /* Hover shade */
+  transform: translateY(-1px); /* Lift effect */
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
+  .card {
+    margin: 1.5rem 1rem; /* More margin on mobile */
+  }
+
+  .card-header {
+    font-size: 1.25rem; /* Smaller on mobile */
+  }
+
+  .form-input {
+    padding: 0.75rem;
+  }
+
+  .btn.btn-primary {
+    padding: 0.65rem;
+  }
+}
+
+/* Footer Styles */
+footer {
+  background-color: #2d3e50; /* bg-primary */
+  color: #ffffff; /* text-white */
+  border-top: 1px solid rgba(255, 255, 255, 0.1); /* Subtle top border */
+}
+
+footer .btn-light {
+  padding: 0.5rem 1.2rem; /* Match sm button size */
+  font-size: 0.9rem;
+  transition: all 0.2s ease-in-out;
+}
+
+footer .btn-light:hover {
+  background-color: #e9f2f1; /* Slightly lighter hover */
+  transform: translateY(-1px); /* Lift effect */
+}
+
+.opacity-75 {
+  opacity: 0.75; /* Subtle fade for secondary text */
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
+  footer {
+    padding: 2rem 1rem; /* More vertical padding, less horizontal */
+  }
+
+  footer .btn-light {
+    width: 100%; /* Full-width button on mobile */
+    padding: 0.6rem;
+  }
+
+  footer p {
+    font-size: 0.95rem; /* Slightly smaller text */
+  }
+
+  footer .small {
+    font-size: 0.85rem;
+  }
+}
+
+/* ThoughtForm Styles */
+.card.card-rounded {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  border: none; /* Clean look */
+}
+
+.card-header {
+  font-size: 1.5rem; /* Match h3 */
+}
+
+.form-input[type="textarea"],
+textarea.form-input {
+  padding: 0.9rem;
+  font-size: 1.1rem;
+  border-radius: 0.4rem;
+  border-color: #aeaeae;
+  line-height: 1.5;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.form-input:focus,
+textarea.form-input:focus {
+  border-color: #2d3e50; /* bg-primary */
+  outline: none;
+  box-shadow: 0 0 5px rgba(45, 62, 80, 0.3); /* Focus glow */
+}
+
+.btn.btn-primary:disabled {
+  background-color: #aeaeae; /* Default gray when disabled */
+  color: #1a1a1a;
+  cursor: not-allowed;
+  transform: none; /* No lift effect when disabled */
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
+  .card {
+    margin: 1.5rem 1rem; /* More margin on mobile */
+  }
+
+  .card-header {
+    font-size: 1.25rem; /* Smaller on mobile */
+  }
+
+  textarea.form-input {
+    padding: 0.75rem;
+    min-height: 80px; /* Slightly smaller */
+  }
+
+  .btn.btn-primary {
+    padding: 0.65rem;
+  }
+}
+
+/* ThoughtList Styles */
+.card.card-rounded {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  border: none; /* Clean look */
+}
+
+.card-header {
+  font-size: 1.5rem; /* Match h4 */
+}
+
+.block {
+  display: block; /* For timestamp */
+}
+
+.text-sm {
+  font-size: 0.9rem; /* Smaller text utility */
+}
+
+.opacity-75 {
+  opacity: 0.75; /* Subtle fade */
+}
+
+.card-body {
+  background-color: #d9e9e8; /* bg-light */
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
+  .card {
+    margin: 0 1rem 1.5rem; /* Adjust margins for mobile */
+  }
+
+  .card-header {
+    font-size: 1.25rem; /* Smaller on mobile */
+  }
+
+  .text-sm {
+    font-size: 0.85rem;
+  }
+
+  .btn.btn-primary {
+    padding: 0.65rem; /* Slightly smaller */
+  }
+}
+
+
 /*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
 /* Document
    ========================================================================== */

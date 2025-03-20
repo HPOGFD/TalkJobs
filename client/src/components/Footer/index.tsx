@@ -5,28 +5,31 @@ const Footer: React.FC = () => {
   const navigate = useNavigate();
 
   const handleGoBack = () => {
-    if(window.history.length > 1) { //Check if there is a previous page in the history stack
+    if (window.history.length > 1) {
       navigate(-1);
     } else {
       navigate('/');
     }
-  }
+  };
 
   return (
-    <footer className="w-100 mt-auto bg-secondary p-4">
-      <div className="container text-center mb-5">
+    <footer className="w-100 mt-auto bg-primary text-white p-4">
+      <div className="container flex-column align-center text-center">
         {location.pathname !== '/' && (
           <button
-            className="btn btn-dark mb-3"
+            className="btn btn-light btn-sm mb-4"
             onClick={handleGoBack}
           >
-            &larr; Go Back
+            ← Go Back
           </button>
         )}
-        
-        <div className="mt-3">
-          <p className="text-strong mb-0">Final Project Authors: Harry, Ali, Dan</p>
-          <p className="text-strong small">© {new Date().getFullYear()} Tech Job Thoughts. All rights reserved.</p>
+        <div>
+          <p className="text-white mb-1">
+            Final Project Authors: Harry, Ali, Dan
+          </p>
+          <p className="text-white small opacity-75 mb-0">
+            © {new Date().getFullYear()} CareerLink. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
