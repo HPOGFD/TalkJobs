@@ -1,55 +1,50 @@
-import { Link } from 'react-router-dom'; 
-import { useState, type MouseEvent } from 'react'; 
+import { Link } from 'react-router-dom';
+import { useState, type MouseEvent } from 'react';
 import Auth from '../../utils/auth';
 
 const Header = () => {
-  const [] = useState('');
-  
+  const [/* unused state */] = useState('');
+
   const logout = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     Auth.logout();
   };
-  
-  
+
   return (
-    <header className="bg-primary text-light py-3">
-      <div className="container flex-row justify-space-between-lg justify-center align-center">
-        <div>
+    <header className="header bg-primary text-light">
+      <div className="container flex-row justify-space-between-lg justify-center align-center py-3">
+        {/* Logo Section */}
+        <div className="logo-section">
           <Link className="text-light" to="/">
-            <h1 className="m-0">CareerLink</h1>
+            <h1 className="m-0 text-white">CareerLink</h1>
           </Link>
-          <p className="m-0">Find tech jobs and share your thoughts about them.</p>
+          <p className="m-0 text-light subtitle">Find tech jobs and share your thoughts about them.</p>
         </div>
-        <Link className="btn btn-info m-2" to="/job-results">
-                Search For Jobs
-              </Link>
-       
-        
-        <nav className="flex-row">
-        
-          
+
+        {/* Navigation Section */}
+        <nav className="nav flex-row align-center">
+          <Link className="btn btn-info mx-2" to="/job-results">
+            Search For Jobs
+          </Link>
+
           {Auth.loggedIn() ? (
             <>
-            <Link className="btn btn-info m-2" to="/saved-jobs">
+              <Link className="btn btn-info mx-2" to="/saved-jobs">
                 Saved Jobs
               </Link>
-              <Link className="btn btn-info m-2" to="/me">
-                {Auth.getProfile().data.username}'s profile
+              <Link className="btn btn-info mx-2" to="/me">
+                {Auth.getProfile().data.username}'s Profile
               </Link>
-              
-              <button className="btn btn-light m-2" onClick={logout}>
+              <button className="btn btn-danger mx-2" onClick={logout}>
                 Logout
               </button>
-             
             </>
           ) : (
             <>
-            
-           
-              <Link className="btn btn-info m-2" to="/login">
+              <Link className="btn btn-info mx-2" to="/login">
                 Login
               </Link>
-              <Link className="btn btn-light m-2" to="/signup">
+              <Link className="btn btn-light mx-2" to="/signup">
                 Signup
               </Link>
             </>
