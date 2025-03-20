@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import AdzunaJobSearch from "../components/SearchForm";
 import ThoughtForm from '../components/ThoughtForm';
+import JobCard from '../components/JobCard'; // Import the new component
 
 // Define the job type (you might want to move this to a types file)
 interface AdzunaJob {
@@ -38,26 +39,11 @@ const JobResultsPage = () => {
           <div className="row">
             {jobs.map((job) => (
               <div key={job.id} className="col-md-6 col-lg-4 mb-3">
-                <div className="card h-100">
-                  <div className="card-body">
-                    <h5 className="card-title">{job.title}</h5>
-                    <p className="card-text">
-                      <strong>Company:</strong> {job.company.display_name}<br />
-                      <strong>Location:</strong> {job.location.display_name}<br />
-                      <small>Posted: {new Date(job.created).toLocaleDateString()}</small>
-                    </p>
-                    <p className="card-text">{job.description.substring(0, 150)}...</p>
-                    <a 
-                      href={job.redirect_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="btn btn-primary"
-                    >
-                      View Job
-                    </a>
-                  </div>
-                </div>
+                <JobCard job={job} />
               </div>
+
+        //add here a button that will allow the user to save the job to the database
+        
             ))}
           </div>
         </div>

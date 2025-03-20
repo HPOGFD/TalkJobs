@@ -8,7 +8,8 @@ import Login from './pages/Login';
 import SingleThought from './pages/SingleThought';
 import Profile from './pages/Profile';
 import ErrorPage from './pages/Error';
-import JobResultsPage from './pages/JobResultsPage'; // Import the missing page
+import JobResultsPage from './pages/JobResultsPage';
+import SavedJobs from './pages/SavedJobs';
 
 const router = createBrowserRouter([
   {
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
       {
         path: '/job-results', // Add the missing route
         element: <JobResultsPage />
+      },
+      {
+        path: '/saved-jobs', // Add the missing route
+        element: <SavedJobs />
       }
     ]
   }

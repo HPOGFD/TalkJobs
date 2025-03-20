@@ -30,7 +30,9 @@ const Header = () => {
           
           {Auth.loggedIn() ? (
             <>
-           
+            <Link className="btn btn-info m-2" to="/saved-jobs">
+                Saved Jobs
+              </Link>
               <Link className="btn btn-info m-2" to="/me">
                 {Auth.getProfile().data.username}'s profile
               </Link>
@@ -38,9 +40,12 @@ const Header = () => {
               <button className="btn btn-light m-2" onClick={logout}>
                 Logout
               </button>
+             
             </>
           ) : (
             <>
+            
+           
               <Link className="btn btn-info m-2" to="/login">
                 Login
               </Link>
