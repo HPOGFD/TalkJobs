@@ -54,3 +54,23 @@ export const ADD_COMMENT = gql`
     }
   }
 `;
+
+export const SAVE_JOB = gql`
+  mutation SaveJob($jobId: ID!) {
+    saveJob(jobId: $jobId) {
+      _id
+      savedJobs {
+        id
+        title
+        company {
+          display_name
+        }
+        location {
+          display_name
+        }
+        created
+        redirect_url
+      }
+    }
+  }
+`;

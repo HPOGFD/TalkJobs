@@ -1,13 +1,13 @@
-import { Thought, User } from '../models/index.js';
-import { signToken, AuthenticationError } from '../utils/auth.js'; 
+import { Thought, User, Job } from '../models/index.js'; // Added Job import
+import { signToken, AuthenticationError } from '../utils/auth.js';
 
 // Define types for the arguments
 interface AddUserArgs {
-  input:{
+  input: {
     username: string;
     email: string;
     password: string;
-  }
+  };
 }
 
 interface LoginUserArgs {
@@ -24,10 +24,10 @@ interface ThoughtArgs {
 }
 
 interface AddThoughtArgs {
-  input:{
+  input: {
     thoughtText: string;
     thoughtAuthor: string;
-  }
+  };
 }
 
 interface AddCommentArgs {
@@ -54,119 +54,161 @@ const resolvers = {
     thought: async (_parent: any, { thoughtId }: ThoughtArgs) => {
       return await Thought.findOne({ _id: thoughtId });
     },
-    // Query to get the authenticated user's information
-    // The 'me' query relies on the context to check if the user is authenticated
-    me: async (_parent: any, _args: any, context: any) => {
-      // If the user is authenticated, find and return the user's information along with their thoughts
+    me: async (_parent: any, _args: any, context: { user?: any }) => {
       if (context.user) {
         return User.findOne({ _id: context.user._id }).populate('thoughts');
       }
-      // If the user is not authenticated, throw an AuthenticationError
       throw new AuthenticationError('Could not authenticate user.');
     },
   },
   Mutation: {
-    addUser: async (_parent: any, { input }: AddUserArgs) => {
-      // Create a new user with the provided username, email, and password
-      const user = await User.create({ ...input });
-    
-      // Sign a token with the user's information
-      const token = signToken(user.username, user.email, user._id);
-    
-      // Return the token and the user
-      return { token, user };
-    },
-    
-    login: async (_parent: any, { email, password }: LoginUserArgs) => {
-      // Find a user with the provided email
-      const user = await User.findOne({ email });
-    
-      // If no user is found, throw an AuthenticationError
-      if (!user) {
-        throw new AuthenticationError('Could not authenticate user.');
+    saveJob: async (_: any, { input }: { input: any }, context: { user?: any }) => {
+      if (!context.user) {
+        throw new AuthenticationError('You need to be logged in to save jobs!');
       }
     
-      // Check if the provided password is correct
-      const correctPw = await user.isCorrectPassword(password);
-    
-      // If the password is incorrect, throw an AuthenticationError
-      if (!correctPw) {
-        throw new AuthenticationError('Could not authenticate user.');
-      }
-    
-      // Sign a token with the user's information
-      const token = signToken(user.username, user.email, user._id);
-    
-      // Return the token and the user
-      return { token, user };
-    },
-    addThought: async (_parent: any, { input }: AddThoughtArgs, context: any) => {
-      if (context.user) {
-        const thought = await Thought.create({ ...input });
-
-        await User.findOneAndUpdate(
-          { _id: context.user._id },
-          { $addToSet: { thoughts: thought._id } }
-        );
-
-        return thought;
-      }
-      throw AuthenticationError;
-      ('You need to be logged in!');
-    },
-    addComment: async (_parent: any, { thoughtId, commentText }: AddCommentArgs, context: any) => {
-      if (context.user) {
-        return Thought.findOneAndUpdate(
-          { _id: thoughtId },
-          {
-            $addToSet: {
-              comments: { commentText, commentAuthor: context.user.username },
-            },
-          },
-          {
-            new: true,
-            runValidators: true,
-          }
-        );
-      }
-      throw AuthenticationError;
-    },
-    removeThought: async (_parent: any, { thoughtId }: ThoughtArgs, context: any) => {
-      if (context.user) {
-        const thought = await Thought.findOneAndDelete({
-          _id: thoughtId,
-          thoughtAuthor: context.user.username,
-        });
-
-        if(!thought){
-          throw AuthenticationError;
+      try {
+        // Check if the job exists by Adzuna ID, or create it
+        let job = await Job.findOne({ id: input.id });
+        if (!job) {
+          job = await Job.create({
+            id: input.id,
+            title: input.title,
+            company: input.company,
+            location: input.location,
+            description: input.description,
+            created: input.created,
+            redirect_url: input.redirect_url,
+          });
         }
-
-        await User.findOneAndUpdate(
-          { _id: context.user._id },
-          { $pull: { thoughts: thought._id } }
-        );
-
-        return thought;
+    
+        const updatedUser = await User.findByIdAndUpdate(
+          context.user._id,
+          { $addToSet: { savedJobs: job._id } }, // Use MongoDB _id
+          { new: true, runValidators: true }
+        ).populate({
+          path: 'savedJobs',
+          select: 'id title company location created redirect_url description',
+        });
+    
+        if (!updatedUser) {
+          throw new Error('User not found');
+        }
+    
+        return updatedUser;
+      } catch (error) {
+        console.error('Error saving job:', error);
+        throw new Error(`Failed to save job: ${(error as Error).message}`);
       }
-      throw AuthenticationError;
     },
-    removeComment: async (_parent: any, { thoughtId, commentId }: RemoveCommentArgs, context: any) => {
-      if (context.user) {
-        return Thought.findOneAndUpdate(
-          { _id: thoughtId },
-          {
-            $pull: {
-              comments: {
-                _id: commentId,
-                commentAuthor: context.user.username,
-              },
+    addUser: async (_parent: any, { input }: AddUserArgs) => {
+      const user = await User.create({ ...input });
+      const token = signToken(user.username, user.email, user._id);
+      return { token, user };
+    },
+    login: async (_parent: any, { email, password }: LoginUserArgs) => {
+      const user = await User.findOne({ email });
+      if (!user) {
+        throw new AuthenticationError('Invalid email or password.');
+      }
+
+      const correctPw = await user.isCorrectPassword(password);
+      if (!correctPw) {
+        throw new AuthenticationError('Invalid email or password.');
+      }
+
+      const token = signToken(user.username, user.email, user._id);
+      return { token, user };
+    },
+    addThought: async (_parent: any, { input }: AddThoughtArgs, context: { user?: any }) => {
+      if (!context.user) {
+        throw new AuthenticationError('You need to be logged in!');
+      }
+
+      const thought = await Thought.create({ ...input });
+      await User.findOneAndUpdate(
+        { _id: context.user._id },
+        { $addToSet: { thoughts: thought._id } },
+        { new: true }
+      );
+
+      return thought;
+    },
+    addComment: async (
+      _parent: any,
+      { thoughtId, commentText }: AddCommentArgs,
+      context: { user?: any }
+    ) => {
+      if (!context.user) {
+        throw new AuthenticationError('You need to be logged in!');
+      }
+
+      return Thought.findOneAndUpdate(
+        { _id: thoughtId },
+        {
+          $addToSet: {
+            comments: { commentText, commentAuthor: context.user.username },
+          },
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+    },
+    removeThought: async (
+      _parent: any,
+      { thoughtId }: ThoughtArgs,
+      context: { user?: any }
+    ) => {
+      if (!context.user) {
+        throw new AuthenticationError('You need to be logged in!');
+      }
+
+      const thought = await Thought.findOneAndDelete({
+        _id: thoughtId,
+        thoughtAuthor: context.user.username,
+      });
+
+      if (!thought) {
+        throw new Error('Thought not found or you are not authorized to delete it.');
+      }
+
+      await User.findOneAndUpdate(
+        { _id: context.user._id },
+        { $pull: { thoughts: thought._id } },
+        { new: true }
+      );
+
+      return thought;
+    },
+    removeComment: async (
+      _parent: any,
+      { thoughtId, commentId }: RemoveCommentArgs,
+      context: { user?: any }
+    ) => {
+      if (!context.user) {
+        throw new AuthenticationError('You need to be logged in!');
+      }
+
+      const thought = await Thought.findOneAndUpdate(
+        { _id: thoughtId },
+        {
+          $pull: {
+            comments: {
+              _id: commentId,
+              commentAuthor: context.user.username,
             },
           },
-          { new: true }
-        );
+        },
+        { new: true }
+      );
+
+      if (!thought) {
+        throw new Error('Thought not found or you are not authorized to remove this comment.');
       }
-      throw AuthenticationError;
+
+      return thought;
     },
   },
 };

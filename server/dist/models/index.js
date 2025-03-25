@@ -1,3 +1,4 @@
-import Thought from './Thought.js';
 import User from './User.js';
-export { Thought, User };
+import Thought from './Thought.js';
+import Job from './Job.js'; // Add this line
+export { User, Thought, Job };

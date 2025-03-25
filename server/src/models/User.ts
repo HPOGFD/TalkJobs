@@ -1,16 +1,15 @@
 import { Schema, model, Document } from 'mongoose';
 import bcrypt from 'bcrypt';
 
-// Define an interface for the User document
 interface IUser extends Document {
   username: string;
   email: string;
   password: string;
   thoughts: Schema.Types.ObjectId[];
+  savedJobs: Schema.Types.ObjectId[];
   isCorrectPassword(password: string): Promise<boolean>;
 }
 
-// Define the schema for the User document
 const userSchema = new Schema<IUser>(
   {
     username: {
@@ -36,11 +35,17 @@ const userSchema = new Schema<IUser>(
         ref: 'Thought',
       },
     ],
+    savedJobs: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Job',
+      },
+    ],
   },
   {
     timestamps: true,
-    toJSON: { getters: true },
-    toObject: { getters: true },
+    toJSON: { getters: true, virtuals: true },
+    toObject: { getters: true, virtuals: true },
   }
 );
 
@@ -49,7 +54,6 @@ userSchema.pre<IUser>('save', async function (next) {
     const saltRounds = 10;
     this.password = await bcrypt.hash(this.password, saltRounds);
   }
-
   next();
 });
 
