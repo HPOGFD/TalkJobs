@@ -1,6 +1,5 @@
 import { Schema, model } from 'mongoose';
 import bcrypt from 'bcrypt';
-// Define the schema for the User document
 const userSchema = new Schema({
     username: {
         type: String,
@@ -25,10 +24,16 @@ const userSchema = new Schema({
             ref: 'Thought',
         },
     ],
+    savedJobs: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Job',
+        },
+    ],
 }, {
     timestamps: true,
-    toJSON: { getters: true },
-    toObject: { getters: true },
+    toJSON: { getters: true, virtuals: true },
+    toObject: { getters: true, virtuals: true },
 });
 userSchema.pre('save', async function (next) {
     if (this.isNew || this.isModified('password')) {
