@@ -1,6 +1,6 @@
 import React from 'react';
 import { useMutation } from '@apollo/client';
-import { SAVE_JOB, QUERY_ME } from '../../utils/queries';
+import { SAVE_JOB, REMOVE_JOB, QUERY_ME } from '../../utils/queries';
 
 // Type definitions remain the same
 interface Company {
@@ -24,27 +24,41 @@ interface AdzunaJob {
 
 interface JobCardProps {
   job: AdzunaJob;
+  buttonText?: string; // "Save Job" or "Delete"
+  onButtonClick?: () => void; // Custom handler from parent
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job }) => {
-  const [saveJob, { error, loading }] = useMutation(SAVE_JOB, {
+const JobCard: React.FC<JobCardProps> = ({ job, buttonText = 'Save Job', onButtonClick }) => {
+  const [saveJob, { error: saveError, loading: saveLoading }] = useMutation(SAVE_JOB, {
     update(cache, { data }) {
       try {
-        // Update the cache with the new saved jobs
         cache.modify({
           fields: {
             me() {
-              // Assumes saveJob returns the updated user
               return data?.saveJob;
-            }
-          }
+            },
+          },
         });
       } catch (cacheError) {
         console.error('Cache update error:', cacheError);
       }
     },
-    onError: (err) => {
-      console.error('Mutation error:', err);
+    refetchQueries: [{ query: QUERY_ME }],
+  });
+
+  const [removeJob, { error: removeError, loading: removeLoading }] = useMutation(REMOVE_JOB, {
+    update(cache, { data }) {
+      try {
+        cache.modify({
+          fields: {
+            me() {
+              return data?.removeJob;
+            },
+          },
+        });
+      } catch (cacheError) {
+        console.error('Cache update error:', cacheError);
+      }
     },
     refetchQueries: [{ query: QUERY_ME }],
   });
@@ -55,23 +69,25 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
         alert('Job title is required');
         return;
       }
-  
+
       const saveJobInput = {
         title: job.title,
-        company: { display_name: typeof job.company === "string" ? job.company : job.company?.display_name || "Unknown Company" },
-        location: { display_name: typeof job.location === "string" ? job.location : job.location?.display_name || "Unknown Location" },
-        created: job.created || new Date().toISOString(),
-        redirect_url: job.redirect_url || "#",
-      };
-  
-      console.log("Sending saveJobInput:", saveJobInput);
-  
-      const { data } = await saveJob({
-        variables: {
-          input: saveJobInput, // Pass input, not jobId
+        company: {
+          display_name: typeof job.company === 'string' ? job.company : job.company?.display_name || 'Unknown Company',
         },
+        location: {
+          display_name: typeof job.location === 'string' ? job.location : job.location?.display_name || 'Unknown Location',
+        },
+        created: job.created || new Date().toISOString(),
+        redirect_url: job.redirect_url || '#',
+      };
+
+      console.log('Sending saveJobInput:', saveJobInput);
+
+      const { data } = await saveJob({
+        variables: { input: saveJobInput },
       });
-  
+
       if (data?.saveJob) {
         alert('Job saved successfully!');
       }
@@ -80,7 +96,37 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
       alert(`Failed to save job: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
-  
+
+  const handleDelete = async () => {
+    try {
+      const jobId = job._id || job.id;
+      if (!jobId) {
+        alert('No job ID found for deletion');
+        return;
+      }
+
+      const { data } = await removeJob({
+        variables: { jobId },
+      });
+
+      if (data?.removeJob) {
+        alert('Job deleted successfully!');
+      }
+    } catch (err) {
+      console.error('Error deleting job:', err);
+      alert(`Failed to delete job: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleClick = () => {
+    if (onButtonClick) {
+      onButtonClick();
+    } else if (buttonText === 'Delete') {
+      handleDelete();
+    } else {
+      handleSave();
+    }
+  };
 
   return (
     <div className="card h-100">
@@ -93,30 +139,28 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
         </p>
         {job.description && (
           <p className="card-text">
-            {job.description.length > 150 
-              ? `${job.description.substring(0, 150)}...` 
-              : job.description}
+            {job.description.length > 150 ? `${job.description.substring(0, 150)}...` : job.description}
           </p>
         )}
         <div>
-          <a 
-            href={job.redirect_url || '#'} 
-            target="_blank" 
-            rel="noopener noreferrer" 
+          <a
+            href={job.redirect_url || '#'}
+            target="_blank"
+            rel="noopener noreferrer"
             className="btn btn-primary"
           >
             View Job
           </a>
-          <button 
-            onClick={handleSave} 
+          <button
+            onClick={handleClick}
             className="btn btn-secondary ms-2"
-            disabled={loading}
+            disabled={saveLoading || removeLoading}
           >
-            {loading ? 'Saving...' : 'Save Job'}
+            {saveLoading || removeLoading ? 'Processing...' : buttonText}
           </button>
-          {error && (
+          {(saveError || removeError) && (
             <p className="text-danger mt-2">
-              Error: {error.message}
+              Error: {(saveError || removeError)?.message}
             </p>
           )}
         </div>

@@ -109,6 +109,56 @@ const resolvers = {
 
       return updatedUser;
     },
+
+    removeJob: async (_: any, { jobId }: { jobId: string }, context: any) => {
+      console.log('Remove Job Mutation Called');
+      console.log('User Context:', JSON.stringify(context.user, null, 2));
+      console.log('Job ID to Remove:', jobId);
+
+      // Check if user is authenticated
+      if (!context.user) {
+        console.error('Authentication Error: No user logged in');
+        throw new AuthenticationError('You need to be logged in to remove saved jobs!');
+      }
+
+      try {
+        // Log user's current saved jobs before removal
+        const userBeforeUpdate = await User.findById(context.user._id);
+        console.log('User Saved Jobs Before Update:', userBeforeUpdate?.savedJobs);
+
+        // Find and update the user to remove the job from savedJobs
+        const updatedUser = await User.findByIdAndUpdate(
+          context.user._id,
+          { $pull: { savedJobs: jobId } },
+          { new: true }
+        ).populate('savedJobs');
+
+        console.log('Updated User:', JSON.stringify(updatedUser, null, 2));
+
+        // If no user was updated, throw an error
+        if (!updatedUser) {
+          console.error('No user found to update');
+          throw new Error('Unable to remove job. User not found.');
+        }
+
+        // Optionally, you might want to delete the job document if it's no longer referenced
+        const jobReferences = await User.countDocuments({ savedJobs: jobId });
+        console.log('Job References Count:', jobReferences);
+
+        if (jobReferences === 0) {
+          console.log('No references found. Deleting job document.');
+          const deletedJob = await Job.findByIdAndDelete(jobId);
+          console.log('Deleted Job:', deletedJob);
+        }
+
+        return updatedUser;
+      } catch (error) {
+        console.error('Error in removeJob mutation:', error);
+        throw error;
+      }
+    },
+
+    
     addUser: async (_parent: any, { input }: AddUserArgs) => {
       const user = await User.create({ ...input });
       const token = signToken(user.username, user.email, user._id);

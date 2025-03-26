@@ -76,3 +76,24 @@ export const SAVE_JOB = gql`
     }
   }
 `;
+
+export const REMOVE_JOB = gql`
+  mutation RemoveJob($jobId: ID!) {
+    removeJob(jobId: $jobId) {
+      _id
+      username
+      savedJobs {
+        _id
+        title
+        company {
+          display_name
+        }
+        location {
+          display_name
+        }
+        created
+        redirect_url
+      }
+    }
+  }
+`;

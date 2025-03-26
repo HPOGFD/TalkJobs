@@ -101,7 +101,7 @@ input LocationInput {
     removeThought(thoughtId: ID!): Thought
     removeComment(commentId: ID!): Thought
     saveJob(input: JobInput!): User
-    removeJob(jobId: String!): User
+    removeJob(jobId: ID!): User
   }
 `;
 export default typeDefs;
