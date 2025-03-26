@@ -18,13 +18,17 @@ interface AdzunaJob {
 const SavedJobs: React.FC = () => {
   const { loading, error, data } = useQuery(QUERY_ME);
 
+  // Log the raw data from QUERY_ME
+  console.log("Raw data from QUERY_ME:", JSON.stringify(data, null, 2));
+  // Log just the savedJobs array
   console.log("Saved jobs from QUERY_ME:", JSON.stringify(data?.me?.savedJobs, null, 2));
 
   if (loading) return <div>Loading saved jobs...</div>;
   if (error) return <div>Error loading saved jobs: {error.message}</div>;
 
   const savedJobs: AdzunaJob[] = data?.me?.savedJobs || [];
-  console.log('Saved jobs from QUERY_ME:', savedJobs);
+  // Log the processed savedJobs array
+  console.log('Processed saved jobs:', JSON.stringify(savedJobs, null, 2));
 
   return (
     <div className="container">
@@ -38,6 +42,15 @@ const SavedJobs: React.FC = () => {
             const companyName = job.company?.display_name || 'Unknown Company';
             const locationName = job.location?.display_name || 'Unknown Location';
             const jobKey = job._id || job.id || 'unknown-job';
+
+            // Log each job as it's processed
+            console.log(`Processing job ${jobKey}:`, JSON.stringify({
+              title: job.title,
+              company: companyName,
+              location: locationName,
+              created: job.created,
+              redirect_url: job.redirect_url
+            }, null, 2));
 
             return (
               <div key={jobKey} className="col-md-4 mb-3">

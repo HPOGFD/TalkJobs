@@ -147,20 +147,22 @@ export const ADD_COMMENT = gql`
   }
 `;
 export const SAVE_JOB = gql`
- mutation SaveJob($jobId: ID!) {
-  saveJob(jobId: $jobId) {
-    _id
-    savedJobs {
-      id
-      title
-      company {
-        display_name
+  mutation SaveJob($input: JobInput!) {
+    saveJob(input: $input) {
+      _id
+      username
+      savedJobs {
+        _id  # Use _id, not id
+        title
+        company {
+          display_name
+        }
+        location {
+          display_name
+        }
+        created
+        redirect_url
       }
-      location {
-        display_name
-      }
-      created
-      redirect_url
     }
   }
-}`;
+`;

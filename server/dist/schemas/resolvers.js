@@ -1,4 +1,4 @@
-import { Thought, User, Job } from '../models/index.js'; // Added Job import
+import { Thought, User, Job } from '../models/index.js';
 import { signToken, AuthenticationError } from '../utils/auth.js';
 const resolvers = {
     Query: {
@@ -18,31 +18,30 @@ const resolvers = {
             if (!context.user) {
                 throw new AuthenticationError('You need to be logged in!');
             }
-            // Retrieve the user and populate their saved jobs
-            const user = await User.findById(context.user._id)
-                .populate({
+            const user = await User.findById(context.user._id).populate({
                 path: 'savedJobs',
-                select: 'title company location created redirect_url', // Only include necessary fields
+                select: 'title company location created redirect_url',
             });
             return user;
         },
     },
     Mutation: {
         saveJob: async (_, { input }, context) => {
+            console.log("Received input at resolver:", JSON.stringify(input, null, 2));
             if (!context.user) {
                 throw new AuthenticationError('You need to be logged in to save jobs!');
             }
-            // Create the job
+            // Create the job with the full company and location objects
             const job = await Job.create({
                 title: input.title,
-                company: input.company,
-                location: input.location,
-                created: input.created || new Date().toISOString(),
-                redirect_url: input.redirect_url
+                company: { display_name: input.company.display_name },
+                location: { display_name: input.location.display_name },
+                created: input.created ? new Date(input.created) : new Date(),
+                redirect_url: input.redirect_url,
             });
             // Update the user by adding the job to savedJobs
             const updatedUser = await User.findByIdAndUpdate(context.user._id, { $addToSet: { savedJobs: job._id } }, { new: true }).populate('savedJobs');
-            return updatedUser; // Returns the entire user with populated savedJobs
+            return updatedUser;
         },
         addUser: async (_parent, { input }) => {
             const user = await User.create({ ...input });

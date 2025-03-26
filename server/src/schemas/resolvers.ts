@@ -1,22 +1,30 @@
-import { Thought, User, Job } from '../models/index.js'; // Added Job import
+import { Thought, User, Job } from '../models/index.js';
+import { signToken, AuthenticationError } from '../utils/auth.js';
 
-// Define the JobInput type
+// Define input interfaces
+interface CompanyInput {
+  display_name: string;
+}
+
+interface LocationInput {
+  display_name: string;
+}
+
 interface JobInput {
   title: string;
-  company: string;
-  location: string;
+  company: CompanyInput;
+  location: LocationInput;
   created?: string;
   redirect_url: string;
 }
-import { signToken, AuthenticationError } from '../utils/auth.js';
 
-// Define types for the arguments
+// Other argument interfaces
 interface AddUserArgs {
   input: {
     username: string;
     email: string;
     password: string;
-  }
+  };
 }
 
 interface LoginUserArgs {
@@ -36,7 +44,7 @@ interface AddThoughtArgs {
   input: {
     thoughtText: string;
     thoughtAuthor: string;
-  },
+  };
 }
 
 interface AddCommentArgs {
@@ -68,46 +76,39 @@ const resolvers = {
         throw new AuthenticationError('You need to be logged in!');
       }
 
-      // Retrieve the user and populate their saved jobs
-      const user = await User.findById(context.user._id)
-        .populate({
-          path: 'savedJobs',
-          select: 'title company location created redirect_url', // Only include necessary fields
-        });
+      const user = await User.findById(context.user._id).populate({
+        path: 'savedJobs',
+        select: 'title company location created redirect_url',
+      });
 
       return user;
     },
-    
-    
   },
   Mutation: {
     saveJob: async (_: any, { input }: { input: JobInput }, context: any) => {
-      console.log("Received input at resolver:", input);
+      console.log("Received input at resolver:", JSON.stringify(input, null, 2));
       if (!context.user) {
         throw new AuthenticationError('You need to be logged in to save jobs!');
       }
-    
-      // Create the job
+
+      // Create the job with the full company and location objects
       const job = await Job.create({
         title: input.title,
-        company: input.company, // Directly assign the company string
-        location: input.location, // Directly assign the location string
-        created: input.created || new Date().toISOString(),
-        redirect_url: input.redirect_url
+        company: { display_name: input.company.display_name },
+        location: { display_name: input.location.display_name },
+        created: input.created ? new Date(input.created) : new Date(),
+        redirect_url: input.redirect_url,
       });
-      
-    
+
       // Update the user by adding the job to savedJobs
       const updatedUser = await User.findByIdAndUpdate(
         context.user._id,
         { $addToSet: { savedJobs: job._id } },
         { new: true }
       ).populate('savedJobs');
-    
-      return updatedUser; // Returns the entire user with populated savedJobs
+
+      return updatedUser;
     },
-    
-    
     addUser: async (_parent: any, { input }: AddUserArgs) => {
       const user = await User.create({ ...input });
       const token = signToken(user.username, user.email, user._id);

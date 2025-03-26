@@ -51,36 +51,27 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
 
   const handleSave = async () => {
     try {
-      // Validate required fields
       if (!job.title) {
         alert('Job title is required');
         return;
       }
   
-      // Define the saveJobInput properly
       const saveJobInput = {
         title: job.title,
-        company: typeof job.company === "string"
-          ? { display_name: job.company } // Wrap the company string in an object
-          : job.company, // If already an object, use it as is
-  
-        location: typeof job.location === "string"
-          ? { display_name: job.location } // Wrap the location string in an object
-          : job.location, // If already an object, use it as is
-  
+        company: { display_name: typeof job.company === "string" ? job.company : job.company?.display_name || "Unknown Company" },
+        location: { display_name: typeof job.location === "string" ? job.location : job.location?.display_name || "Unknown Location" },
         created: job.created || new Date().toISOString(),
         redirect_url: job.redirect_url || "#",
       };
   
-      console.log("Sending saveJobInput:", saveJobInput); // Debugging log
+      console.log("Sending saveJobInput:", saveJobInput);
   
       const { data } = await saveJob({
         variables: {
-          input: saveJobInput,
+          input: saveJobInput, // Pass input, not jobId
         },
       });
   
-      // Check if job was successfully saved
       if (data?.saveJob) {
         alert('Job saved successfully!');
       }
