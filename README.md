@@ -23,7 +23,7 @@ React Apollo-Client GraphQL Node.js MongoDB Job-Search Authentication Adzuna-API
 ## Installation
 
 1. **Clone the Repo**
-git clone https://github.com/yourusername/jobsaver.git
+git clone https://github.com/HPOGFD/TalkJobs.git
 cd jobsaver
 
 text
