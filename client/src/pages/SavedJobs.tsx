@@ -18,6 +18,8 @@ interface AdzunaJob {
 const SavedJobs: React.FC = () => {
   const { loading, error, data } = useQuery(QUERY_ME);
 
+  console.log("Saved jobs from QUERY_ME:", JSON.stringify(data?.me?.savedJobs, null, 2));
+
   if (loading) return <div>Loading saved jobs...</div>;
   if (error) return <div>Error loading saved jobs: {error.message}</div>;
 

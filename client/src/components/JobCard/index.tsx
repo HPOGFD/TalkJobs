@@ -2,7 +2,7 @@ import React from 'react';
 import { useMutation } from '@apollo/client';
 import { SAVE_JOB, QUERY_ME } from '../../utils/queries';
 
-// More precise type definitions
+// Type definitions remain the same
 interface Company {
   display_name: string;
 }
@@ -27,22 +27,18 @@ interface JobCardProps {
 }
 
 const JobCard: React.FC<JobCardProps> = ({ job }) => {
-  const [saveJob, { error }] = useMutation(SAVE_JOB, {
-    update(cache, { data: { saveJob } }) {
+  const [saveJob, { error, loading }] = useMutation(SAVE_JOB, {
+    update(cache, { data }) {
       try {
-        const existingMe = cache.readQuery<{ me: any }>({ query: QUERY_ME });
-        
-        if (existingMe?.me) {
-          cache.writeQuery({
-            query: QUERY_ME,
-            data: {
-              me: {
-                ...existingMe.me,
-                savedJobs: saveJob.savedJobs,
-              },
-            },
-          });
-        }
+        // Update the cache with the new saved jobs
+        cache.modify({
+          fields: {
+            me() {
+              // Assumes saveJob returns the updated user
+              return data?.saveJob;
+            }
+          }
+        });
       } catch (cacheError) {
         console.error('Cache update error:', cacheError);
       }
@@ -55,49 +51,54 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
 
   const handleSave = async () => {
     try {
-      console.log('Saving job:', job);
-      
-      // Ensure all required fields are present
+      // Validate required fields
+      if (!job.title) {
+        alert('Job title is required');
+        return;
+      }
+  
+      // Define the saveJobInput properly
       const saveJobInput = {
-        title: job.title || 'Untitled Job',
-        company: { 
-          display_name: job.company?.display_name || 'Unknown Company' 
-        },
-        location: { 
-          display_name: job.location?.display_name || 'Unknown Location' 
-        },
+        title: job.title,
+        company: typeof job.company === "string"
+          ? { display_name: job.company } // Wrap the company string in an object
+          : job.company, // If already an object, use it as is
+  
+        location: typeof job.location === "string"
+          ? { display_name: job.location } // Wrap the location string in an object
+          : job.location, // If already an object, use it as is
+  
         created: job.created || new Date().toISOString(),
-        redirect_url: job.redirect_url || '#',
+        redirect_url: job.redirect_url || "#",
       };
-
-      await saveJob({
+  
+      console.log("Sending saveJobInput:", saveJobInput); // Debugging log
+  
+      const { data } = await saveJob({
         variables: {
           input: saveJobInput,
         },
       });
-      
-      alert('Job saved successfully!');
+  
+      // Check if job was successfully saved
+      if (data?.saveJob) {
+        alert('Job saved successfully!');
+      }
     } catch (err) {
       console.error('Error saving job:', err);
-      alert('Failed to save job');
+      alert(`Failed to save job: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
-
-  // Derive safe values with fallbacks
-  const companyName = job.company?.display_name || 'Unknown Company';
-  const locationName = job.location?.display_name || 'Unknown Location';
-  const postedDate = job.created 
-    ? new Date(job.created).toLocaleDateString() 
-    : 'Date Unknown';
+  
 
   return (
     <div className="card h-100">
       <div className="card-body">
         <h5 className="card-title">{job.title || 'Untitled Job'}</h5>
         <p className="card-text">
-          <strong>Company:</strong> {companyName}<br />
-          <strong>Location:</strong> {locationName}<br />
-          <small>Posted: {postedDate}</small>
+          <strong>Company:</strong> {job.company?.display_name || 'Unknown Company'}<br />
+          <strong>Location:</strong> {job.location?.display_name || 'Unknown Location'}<br />
+          <small>Posted: {new Date(job.created).toLocaleDateString()}</small>
         </p>
         {job.description && (
           <p className="card-text">
@@ -118,8 +119,9 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
           <button 
             onClick={handleSave} 
             className="btn btn-secondary ms-2"
+            disabled={loading}
           >
-            Save Job
+            {loading ? 'Saving...' : 'Save Job'}
           </button>
           {error && (
             <p className="text-danger mt-2">

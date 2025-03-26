@@ -14,11 +14,17 @@ const resolvers = {
         thought: async (_parent, { thoughtId }) => {
             return await Thought.findOne({ _id: thoughtId });
         },
-        me: async (_parent, _args, context) => {
-            if (context.user) {
-                return User.findOne({ _id: context.user._id }).populate('thoughts');
+        me: async (_, __, context) => {
+            if (!context.user) {
+                throw new AuthenticationError('You need to be logged in!');
             }
-            throw new AuthenticationError('Could not authenticate user.');
+            // Retrieve the user and populate their saved jobs
+            const user = await User.findById(context.user._id)
+                .populate({
+                path: 'savedJobs',
+                select: 'title company location created redirect_url', // Only include necessary fields
+            });
+            return user;
         },
     },
     Mutation: {
@@ -26,34 +32,17 @@ const resolvers = {
             if (!context.user) {
                 throw new AuthenticationError('You need to be logged in to save jobs!');
             }
-            try {
-                // Check if the job exists by Adzuna ID, or create it
-                let job = await Job.findOne({ id: input.id });
-                if (!job) {
-                    job = await Job.create({
-                        id: input.id,
-                        title: input.title,
-                        company: input.company,
-                        location: input.location,
-                        description: input.description,
-                        created: input.created,
-                        redirect_url: input.redirect_url,
-                    });
-                }
-                const updatedUser = await User.findByIdAndUpdate(context.user._id, { $addToSet: { savedJobs: job._id } }, // Use MongoDB _id
-                { new: true, runValidators: true }).populate({
-                    path: 'savedJobs',
-                    select: 'id title company location created redirect_url description',
-                });
-                if (!updatedUser) {
-                    throw new Error('User not found');
-                }
-                return updatedUser;
-            }
-            catch (error) {
-                console.error('Error saving job:', error);
-                throw new Error(`Failed to save job: ${error.message}`);
-            }
+            // Create the job
+            const job = await Job.create({
+                title: input.title,
+                company: input.company,
+                location: input.location,
+                created: input.created || new Date().toISOString(),
+                redirect_url: input.redirect_url
+            });
+            // Update the user by adding the job to savedJobs
+            const updatedUser = await User.findByIdAndUpdate(context.user._id, { $addToSet: { savedJobs: job._id } }, { new: true }).populate('savedJobs');
+            return updatedUser; // Returns the entire user with populated savedJobs
         },
         addUser: async (_parent, { input }) => {
             const user = await User.create({ ...input });

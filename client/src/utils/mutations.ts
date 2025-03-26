@@ -55,12 +55,15 @@ export const ADD_COMMENT = gql`
   }
 `;
 
+
+
 export const SAVE_JOB = gql`
-  mutation SaveJob($jobId: ID!) {
-    saveJob(jobId: $jobId) {
+  mutation SaveJob($input: JobInput!) {
+    saveJob(input: $input) {
       _id
+      username
       savedJobs {
-        id
+        _id
         title
         company {
           display_name
@@ -74,3 +77,4 @@ export const SAVE_JOB = gql`
     }
   }
 `;
+
