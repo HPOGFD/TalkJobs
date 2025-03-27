@@ -1,0 +1,27 @@
+name: Simple Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  simple-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say Hello and Thank You
+        run: echo "Hello, and thank you for your contribution!"
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@v3
+
+      # Deploy only if on main branch
+      - name: Deploy to Render
+        if: github.ref == 'refs/heads/main'
+        env:
+          DEPLOY_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          curl "$DEPLOY_URL"
