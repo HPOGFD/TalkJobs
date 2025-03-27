@@ -9,8 +9,8 @@ jobs:
   simple-job:
     runs-on: ubuntu-latest
     steps:
-      - name: Say Hello
-        run: echo "Hello, Thanks for your contribution!"
+      - name: Say Hello and thanks for your contribution
+        run: echo "Hello, GitHub Actions!"
 
   deploy:
     runs-on: ubuntu-latest
